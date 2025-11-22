@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DriveGallery</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h1 class="logo">DriveGallery</h1>
+            <nav class="navigation">
+                <a href="#" class="nav-item active" data-filter="all">Everything</a>
+                <a href="#" class="nav-item" data-filter="videos">Videos Only</a>
+                <h2 class="collections-title">Collections</h2>
+                <div id="collections-nav" class="collections-nav">
+                    <!-- Collection links will be dynamically inserted here -->
+                </div>
+            </nav>
+            <div class="theme-switcher">
+                <label for="theme-toggle">Dark Mode</label>
+                <input type="checkbox" id="theme-toggle">
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="toolbar">
+                <div class="sort-options">
+                    <label for="sort-by">Sort by:</label>
+                    <select id="sort-by">
+                        <option value="date-desc">Date Created (Newest)</option>
+                        <option value="date-asc">Date Created (Oldest)</option>
+                        <option value="name-asc">File Name (A-Z)</option>
+                        <option value="name-desc">File Name (Z-A)</option>
+                    </select>
+                </div>
+            </header>
+            <div id="gallery-grid" class="gallery-grid">
+                <!-- Media items will be dynamically inserted here -->
+                <div class="loader"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="lightbox" class="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <div class="lightbox-content">
+            <a class="lightbox-prev">&#10094;</a>
+            <div class="media-container">
+                <!-- Image or Video will be loaded here -->
+            </div>
+            <a class="lightbox-next">&#10095;</a>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

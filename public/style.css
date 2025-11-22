@@ -1,0 +1,275 @@
+/* --- CSS Variables for Theming --- */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --sidebar-bg: #f4f4f4;
+    --accent-color: #4285f4;
+    --border-color: #e0e0e0;
+    --loader-color: #4285f4;
+    --grid-gap: 15px;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --sidebar-bg: #1e1e1e;
+    --accent-color: #8ab4f8;
+    --border-color: #3c4043;
+    --loader-color: #8ab4f8;
+}
+
+/* --- General Styles --- */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 240px;
+    background-color: var(--sidebar-bg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: 500;
+    color: var(--accent-color);
+    margin-bottom: 30px;
+}
+
+.navigation .nav-item {
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.navigation .nav-item.active,
+.navigation .nav-item:hover {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+.collections-title {
+    font-size: 1.2em;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.collections-nav {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Theme Switcher --- */
+.theme-switcher {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+/* --- Main Content --- */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+#sort-by {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* --- Gallery Grid (CSS Columns Masonry) --- */
+.gallery-grid {
+    column-count: auto;
+    column-width: 250px;
+    column-gap: var(--grid-gap);
+}
+
+.grid-item {
+    break-inside: avoid;
+    margin-bottom: var(--grid-gap);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--sidebar-bg);
+    /* Placeholder color */
+}
+
+.grid-item img,
+.grid-item video {
+    width: 100%;
+    height: auto;
+    /* Maintain aspect ratio */
+    display: block;
+}
+
+.grid-item .video-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-icon svg {
+    fill: #fff;
+    width: 14px;
+    height: 14px;
+}
+
+
+/* --- Loader --- */
+.loader {
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--loader-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -20px;
+    margin-left: -20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Lightbox --- */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox.active {
+    display: flex;
+}
+
+.lightbox-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.media-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-container img,
+.media-container video {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.lightbox-iframe {
+    max-width: 100%;
+    max-height: 90vh;
+    width: 80vw;
+    height: 45vw;
+    /* 16:9 aspect ratio approx */
+}
+
+.lightbox-close,
+.lightbox-prev,
+.lightbox-next {
+    cursor: pointer;
+    color: white;
+    font-size: 3em;
+    user-select: none;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    font-size: 40px;
+}
+
+.lightbox-prev,
+.lightbox-next {
+    padding: 16px;
+    transition: 0.3s;
+}
+
+.lightbox-prev:hover,
+.lightbox-next:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+}
