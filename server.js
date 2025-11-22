@@ -7,12 +7,24 @@ const port = 3000;
 
 // --- Configuration ---
 // IMPORTANT: Replace with your actual credentials and folder IDs
-const CREDENTIALS_PATH = path.join(__dirname, 'gcsj-2025-73866c4d9bd1.json'); // Updated to match your file
-const DRIVE_FOLDER_IDS = ['1YKUw48VvU6BwgOumbjxWIbN5xPoLbAvA', '1tIdwr19qoFaSIDilLo-rWLxm4fjJ93zF', '1ZBY39U9NBOJKTfEdmg16XnNyzlmT4hJy']; // Add your Google Drive folder IDs here
+const CREDENTIALS_PATH = path.join(__dirname, 'gcsj-2025-73866c4d9bd1.json');
+const DRIVE_FOLDER_IDS = ['1sVtMywFKCzv7LwPLQrV3Q2lb7XH69KVt', '14bNr079rGkdUzpyXzDxK50K16qFypbLI', '1gIunPxW8QUAbiFYPeq0nUh5xhPr2LH4d', '13or1YN_aQlYZLmX8vwhvbLFdQf2mcKPY', '1YKUw48VvU6BwgOumbjxWIbN5xPoLbAvA'];
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
 
 // --- Google Drive API Authentication ---
 async function getAuthenticatedClient() {
+    // Check for environment variable (for Vercel)
+    if (process.env.GOOGLE_CREDENTIALS) {
+        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+        const auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: SCOPES,
+        });
+        const authClient = await auth.getClient();
+        return google.drive({ version: 'v3', auth: authClient });
+    }
+
+    // Fallback to local file
     const auth = new google.auth.GoogleAuth({
         keyFile: CREDENTIALS_PATH,
         scopes: SCOPES,
@@ -198,7 +210,12 @@ app.get('/api/file/:fileId', async (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Server Start ---
-app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-    console.log('Please ensure your `credentials.json` is in the root directory and you have replaced the placeholder DRIVE_FOLDER_IDS.');
-});
+// Only start the server if we are not in a Vercel environment (Vercel handles the start)
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server listening at http://localhost:${port}`);
+        console.log('Please ensure your `credentials.json` is in the root directory and you have replaced the placeholder DRIVE_FOLDER_IDS.');
+    });
+}
+
+module.exports = app;
