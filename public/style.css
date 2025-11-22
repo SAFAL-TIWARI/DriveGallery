@@ -107,50 +107,94 @@ body {
     color: var(--text-color);
 }
 
-/* --- Gallery Grid (CSS Columns Masonry) --- */
-.gallery-grid {
-    column-count: auto;
-    column-width: 250px;
-    column-gap: var(--grid-gap);
+/* --- Gallery Container --- */
+.gallery-container {
+    padding-bottom: 50px;
+}
+
+/* --- Date Section Headers --- */
+.date-section {
+    margin-bottom: 30px;
+}
+
+.date-header {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 15px;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    padding: 10px 0;
+    z-index: 10;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.date-header .date-main {
+    font-weight: 700;
+    font-size: 1.2em;
+}
+
+.date-header .date-sub {
+    font-weight: 400;
+    font-size: 0.9em;
+    color: #888;
+}
+
+/* --- Gallery Grid (Flex/Grid Hybrid) --- */
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--grid-gap);
 }
 
 .grid-item {
-    break-inside: avoid;
-    margin-bottom: var(--grid-gap);
+    position: relative;
     border-radius: 8px;
     overflow: hidden;
-    position: relative;
     background-color: var(--sidebar-bg);
-    /* Placeholder color */
+    aspect-ratio: 1 / 1; /* Square tiles for a cleaner look, or remove for masonry */
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .grid-item img,
 .grid-item video {
     width: 100%;
-    height: auto;
-    /* Maintain aspect ratio */
+    height: 100%;
+    object-fit: cover; /* Ensures square tiles look good */
     display: block;
+    transition: opacity 0.3s;
 }
 
+/* --- Video Indicator --- */
 .grid-item .video-icon {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 24px;
-    height: 24px;
-    background: rgba(0, 0, 0, 0.5);
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.6);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(2px);
 }
 
 .video-icon svg {
     fill: #fff;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px; /* Optical adjustment */
 }
-
 
 /* --- Loader --- */
 .loader {
@@ -160,35 +204,27 @@ body {
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -20px;
-    margin-left: -20px;
+    margin: 50px auto;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* --- Lightbox --- */
 .lightbox {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2000; /* Higher than headers */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(0, 0, 0, 0.95);
     justify-content: center;
     align-items: center;
+    backdrop-filter: blur(5px);
 }
 
 .lightbox.active {
@@ -196,60 +232,82 @@ body {
 }
 
 .lightbox-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    max-width: 90vw;
-    max-height: 90vh;
 }
 
 .media-container {
+    width: 80%;
+    height: 80%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .media-container img,
-.media-container video {
+.media-container video,
+.media-container iframe {
     max-width: 100%;
-    max-height: 90vh;
+    max-height: 100%;
     object-fit: contain;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 .lightbox-iframe {
-    max-width: 100%;
-    max-height: 90vh;
     width: 80vw;
-    height: 45vw;
-    /* 16:9 aspect ratio approx */
-}
-
-.lightbox-close,
-.lightbox-prev,
-.lightbox-next {
-    cursor: pointer;
-    color: white;
-    font-size: 3em;
-    user-select: none;
+    height: 45vw; /* 16:9 */
+    border: none;
 }
 
 .lightbox-close {
     position: absolute;
-    top: 15px;
-    right: 35px;
+    top: 20px;
+    right: 20px;
+    color: white;
     font-size: 40px;
+    cursor: pointer;
+    z-index: 2001;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.lightbox-close:hover {
+    background: rgba(255,255,255,0.2);
 }
 
 .lightbox-prev,
 .lightbox-next {
-    padding: 16px;
-    transition: 0.3s;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    transition: background 0.2s;
+    user-select: none;
+    z-index: 2001;
 }
 
 .lightbox-prev:hover,
 .lightbox-next:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255,255,255,0.15);
 }
+
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
 
 /* --- Responsive Design --- */
 @media (max-width: 768px) {
@@ -262,14 +320,27 @@ body {
         height: auto;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
-    }
-
-    .main-content {
         padding: 15px;
     }
+    
+    .logo { margin-bottom: 15px; }
 
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 10px;
+    .main-content {
+        padding: 10px;
+    }
+
+    .section-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Smaller tiles on mobile */
+        gap: 5px;
+    }
+    
+    .date-header {
+        font-size: 1em;
+        top: -1px; /* Fix sub-pixel gap */
+    }
+    
+    .lightbox-prev, .lightbox-next {
+        padding: 10px;
+        font-size: 24px;
     }
 }

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const galleryGrid = document.getElementById('gallery-grid');
+    const galleryContainer = document.getElementById('gallery-container');
     const collectionsNav = document.getElementById('collections-nav');
     const sortSelect = document.getElementById('sort-by');
     const navItems = document.querySelectorAll('.nav-item');
@@ -25,71 +25,179 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(themeToggle.checked ? 'dark' : 'light');
     });
 
+    // --- Date Formatting Helper ---
+    const formatDateGroup = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+
+        if (isSameDay(date, now)) return "Today";
+        if (isSameDay(date, yesterday)) return "Yesterday";
+
+        const options = { month: 'long', year: 'numeric' };
+        // Check if it's this month
+        if (date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()) {
+            return "This Month";
+        }
+        return date.toLocaleDateString('en-US', options);
+    };
+
+    const getDetailedDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+    };
+
     // --- Data Fetching ---
     const fetchMedia = async () => {
         try {
+            galleryContainer.innerHTML = '<div class="loader"></div>';
             const response = await fetch('/api/media');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             allMedia = await response.json();
+
+            if (allMedia.length === 0) {
+                galleryContainer.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <h3>No media found</h3>
+                        <p>Please check if the Google Drive folders are empty or if the service account has access.</p>
+                    </div>`;
+                return;
+            }
+
             currentlyDisplayedMedia = [...allMedia];
             populateCollections(allMedia);
             sortAndRenderMedia();
         } catch (error) {
             console.error("Failed to fetch media:", error);
-            galleryGrid.innerHTML = '<p class="error">Could not load media. Please check the server console.</p>';
+            galleryContainer.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: red;">
+                    <h3>Error loading media</h3>
+                    <p>${error.message}</p>
+                    <p>Check the server console for more details.</p>
+                </div>`;
         }
+    };
+
+    // --- Grouping Logic ---
+    const groupMedia = (mediaItems) => {
+        const groups = {};
+        mediaItems.forEach(item => {
+            const groupName = formatDateGroup(item.createdTime);
+            if (!groups[groupName]) {
+                groups[groupName] = [];
+            }
+            groups[groupName].push(item);
+        });
+        return groups;
     };
 
     // --- UI Rendering ---
     const renderGallery = (mediaItems) => {
-        galleryGrid.innerHTML = ''; // Clear existing items
+        galleryContainer.innerHTML = ''; // Clear existing items
+
         if (mediaItems.length === 0) {
-            galleryGrid.innerHTML = '<p>No media found.</p>';
+            galleryContainer.innerHTML = '<p style="text-align:center; padding:20px;">No items match your filter.</p>';
             return;
         }
-        mediaItems.forEach((item, index) => {
-            const gridItem = document.createElement('div');
-            gridItem.className = 'grid-item';
-            gridItem.dataset.index = index;
 
-            let mediaElement;
-            // Use thumbnailLink if available, otherwise use the full URL (for images)
-            // Note: Google Drive thumbnails might be small, but they are better than nothing for videos.
-            // For high-res images, we might want to use the proxy URL, but for the grid, thumbnails are faster.
-            // Let's try using the proxy URL for images (better quality) and thumbnailLink for videos.
+        // If sorting by Name, we might not want date grouping. 
+        // But for "Google Photos" style, date is primary. 
+        // If user sorts by Name, we can just render one big grid or group by first letter.
+        // For now, let's only group by date if sorting by Date.
+        const sortBy = sortSelect.value;
+        const isDateSort = sortBy.includes('date');
 
-            let imageUrl = item.thumbnailLink ? item.thumbnailLink.replace('=s220', '=s600') : item.url;
+        if (isDateSort) {
+            const groups = groupMedia(mediaItems);
+            // Sort groups? "Today" first.
+            // The mediaItems are already sorted, so the groups should be created in order if we iterate.
+            // But object keys order isn't guaranteed. Better to iterate the sorted array and build sections on the fly or use Map.
 
-            if (item.mimeType.startsWith('video/')) {
-                // If no thumbnail for video, use a placeholder or try to load it (but loading video in img tag fails)
-                if (!item.thumbnailLink) {
-                    // Use a transparent pixel or a placeholder SVG data URI
-                    imageUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjUwIDE1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+VmlkZW88L3RleHQ+PC9zdmc+';
+            // Better approach: Iterate sorted items and create new section when date changes.
+            let currentGroup = null;
+            let currentGrid = null;
+
+            mediaItems.forEach((item, index) => {
+                const groupName = formatDateGroup(item.createdTime);
+
+                if (groupName !== currentGroup) {
+                    currentGroup = groupName;
+
+                    // Create Section
+                    const section = document.createElement('div');
+                    section.className = 'date-section';
+
+                    const header = document.createElement('div');
+                    header.className = 'date-header';
+                    header.innerHTML = `
+                        <span class="date-main">${groupName}</span>
+                        <span class="date-sub">${groupName === 'Today' || groupName === 'Yesterday' ? getDetailedDate(item.createdTime) : ''}</span>
+                    `;
+
+                    currentGrid = document.createElement('div');
+                    currentGrid.className = 'section-grid';
+
+                    section.appendChild(header);
+                    section.appendChild(currentGrid);
+                    galleryContainer.appendChild(section);
                 }
 
-                mediaElement = document.createElement('img');
-                mediaElement.src = imageUrl;
-                mediaElement.alt = item.name;
+                const gridItem = createGridItem(item, index);
+                currentGrid.appendChild(gridItem);
+            });
 
-                // Add video icon
-                const videoIcon = document.createElement('div');
-                videoIcon.className = 'video-icon';
-                videoIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-                gridItem.appendChild(videoIcon);
-            } else {
-                mediaElement = document.createElement('img');
-                mediaElement.src = item.url; // Use full quality for images in grid if possible, or imageUrl for speed
-                mediaElement.alt = item.name;
-                mediaElement.loading = 'lazy';
+        } else {
+            // Flat grid for Name sorting
+            const grid = document.createElement('div');
+            grid.className = 'section-grid';
+            mediaItems.forEach((item, index) => {
+                grid.appendChild(createGridItem(item, index));
+            });
+            galleryContainer.appendChild(grid);
+        }
+    };
+
+    const createGridItem = (item, index) => {
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        gridItem.dataset.index = index; // Note: This index is relative to currentlyDisplayedMedia
+
+        let mediaElement;
+        // Use thumbnailLink if available, otherwise use the full URL (for images)
+        let imageUrl = item.thumbnailLink ? item.thumbnailLink.replace('=s220', '=s600') : item.url;
+
+        if (item.mimeType.startsWith('video/')) {
+            if (!item.thumbnailLink) {
+                // Fallback for video without thumbnail
+                imageUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjUwIDE1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+VmlkZW88L3RleHQ+PC9zdmc+';
             }
 
-            gridItem.appendChild(mediaElement);
-            galleryGrid.appendChild(gridItem);
-        });
+            mediaElement = document.createElement('img');
+            mediaElement.src = imageUrl;
+            mediaElement.alt = item.name;
 
-        // CSS Columns handle the layout automatically
+            const videoIcon = document.createElement('div');
+            videoIcon.className = 'video-icon';
+            videoIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+            gridItem.appendChild(videoIcon);
+        } else {
+            mediaElement = document.createElement('img');
+            mediaElement.src = item.url;
+            mediaElement.alt = item.name;
+            mediaElement.loading = 'lazy';
+        }
+
+        gridItem.appendChild(mediaElement);
+
+        // Click event
+        gridItem.addEventListener('click', () => openLightbox(index));
+
+        return gridItem;
     };
 
 
@@ -128,6 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 sorted.sort((a, b) => b.name.localeCompare(a.name));
                 break;
         }
+        // Important: We need to update currentlyDisplayedMedia to match the sorted order 
+        // so that lightbox navigation works correctly with the displayed order.
+        currentlyDisplayedMedia = sorted;
         renderGallery(sorted);
     };
 
@@ -185,12 +296,14 @@ document.addEventListener('DOMContentLoaded', () => {
         lightboxMediaContainer.innerHTML = ''; // Stop video playback etc.
     };
 
-    const showNextMedia = () => {
+    const showNextMedia = (e) => {
+        if (e) e.stopPropagation();
         const newIndex = (currentLightboxIndex + 1) % currentlyDisplayedMedia.length;
         openLightbox(newIndex);
     };
 
-    const showPrevMedia = () => {
+    const showPrevMedia = (e) => {
+        if (e) e.stopPropagation();
         const newIndex = (currentLightboxIndex - 1 + currentlyDisplayedMedia.length) % currentlyDisplayedMedia.length;
         openLightbox(newIndex);
     };
@@ -199,20 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
     sortSelect.addEventListener('change', sortAndRenderMedia);
     navItems.forEach(item => item.addEventListener('click', handleFilterClick));
 
-    galleryGrid.addEventListener('click', (e) => {
-        const gridItem = e.target.closest('.grid-item');
-        if (gridItem) {
-            const index = parseInt(gridItem.dataset.index, 10);
-            openLightbox(index);
-        }
-    });
-
     closeLightboxBtn.addEventListener('click', closeLightbox);
     nextLightboxBtn.addEventListener('click', showNextMedia);
     prevLightboxBtn.addEventListener('click', showPrevMedia);
 
     lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) { // Close if clicking on the background
+        if (e.target === lightbox || e.target === lightboxMediaContainer) {
             closeLightbox();
         }
     });
