@@ -45,7 +45,15 @@
                 <nav class="navigation">
                     <a href="#" class="nav-item active" data-filter="all">Everything</a>
                     <a href="#" class="nav-item" data-filter="videos">Videos Only</a>
+                </nav>
+                <div class="collections-section">
                     <h2 class="collections-title">Collections</h2>
+                    <div class="collection-search-wrapper">
+                        <input type="text" id="collection-search" class="collection-search" placeholder="Search collections...">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                        </svg>
+                    </div>
                     <div id="collections-nav" class="collections-nav">
                         <div class="dropdown-section">
                             <div class="dropdown-header" id="images-header">
@@ -74,10 +82,12 @@
                             </div>
                         </div>
                     </div>
-                </nav>
-                <div class="theme-switcher">
-                    <label for="theme-toggle">Dark Mode</label>
-                    <input type="checkbox" id="theme-toggle">
+                </div>
+                <div class="sidebar-footer">
+                    <div class="theme-switcher">
+                        <label for="theme-toggle">Dark Mode</label>
+                        <input type="checkbox" id="theme-toggle">
+                    </div>
                 </div>
             </div>
         </aside>
@@ -97,6 +107,14 @@
             <div id="gallery-container" class="gallery-container">
                 <!-- Sections will be dynamically inserted here -->
                 <div class="loader"></div>
+            </div>
+            <div class="custom-scrollbar">
+                <div class="scrollbar-track">
+                    <div class="scrollbar-thumb"></div>
+                </div>
+                <div class="scrollbar-timeline" id="scrollbar-timeline">
+                    <!-- Timeline markers will be inserted here -->
+                </div>
             </div>
         </main>
     </div>

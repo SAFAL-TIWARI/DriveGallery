@@ -10,14 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevLightboxBtn = lightbox.querySelector('.lightbox-prev');
     const nextLightboxBtn = lightbox.querySelector('.lightbox-next');
     const downloadLightboxBtn = document.getElementById('lightbox-download');
+    const collectionSearchInput = document.getElementById('collection-search');
 
     // Mobile Nav Elements
     const navToggle = document.querySelector('.nav-toggle');
     const navContent = document.querySelector('.nav-content');
 
+    // Custom Scrollbar Elements
+    const customScrollbar = document.querySelector('.custom-scrollbar');
+    const scrollbarThumb = document.querySelector('.scrollbar-thumb');
+    const scrollbarTimeline = document.getElementById('scrollbar-timeline');
+
     let allMedia = [];
     let currentlyDisplayedMedia = [];
     let currentLightboxIndex = 0;
+    let timelineMarkers = [];
+    let scrollbarHideTimer = null;
+
+    const isMobile = () => window.innerWidth < 768;
 
     // --- Theme Management ---
     const applyTheme = (theme) => {
@@ -29,6 +39,71 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle.addEventListener('change', () => {
         applyTheme(themeToggle.checked ? 'dark' : 'light');
     });
+
+    // --- Custom Scrollbar Management ---
+    const updateTimelineMarkers = () => {
+        scrollbarTimeline.innerHTML = '';
+        timelineMarkers = [];
+
+        const sections = document.querySelectorAll('.date-section');
+        const totalHeight = galleryContainer.scrollHeight;
+
+        sections.forEach((section, index) => {
+            const header = section.querySelector('.date-header');
+            if (!header) return;
+
+            const label = header.querySelector('.date-main')?.textContent || '';
+            const sectionTop = section.offsetTop;
+            const percentageTop = (sectionTop / totalHeight) * 100;
+
+            const marker = {
+                label: label,
+                percentage: percentageTop,
+                element: section
+            };
+            timelineMarkers.push(marker);
+
+            const markerEl = document.createElement('div');
+            markerEl.className = 'timeline-marker';
+            markerEl.style.top = percentageTop + '%';
+            markerEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            const labelEl = document.createElement('div');
+            labelEl.className = 'timeline-label';
+            labelEl.textContent = label;
+            labelEl.style.top = percentageTop + '%';
+            labelEl.style.transform = 'translateY(-50%)';
+            labelEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            scrollbarTimeline.appendChild(markerEl);
+            scrollbarTimeline.appendChild(labelEl);
+        });
+
+        updateScrollbarPosition();
+    };
+
+    const updateScrollbarPosition = () => {
+        const mainContent = document.querySelector('.main-content');
+        const scrollTop = mainContent.scrollTop;
+        const scrollHeight = mainContent.scrollHeight - mainContent.clientHeight;
+        const scrollPercentage = (scrollTop / scrollHeight) * 100;
+
+        const thumbHeight = (mainContent.clientHeight / mainContent.scrollHeight) * 100;
+        scrollbarThumb.style.height = Math.max(thumbHeight, 20) + '%';
+        scrollbarThumb.style.top = scrollPercentage + '%';
+
+        customScrollbar.classList.remove('hidden');
+        clearTimeout(scrollbarHideTimer);
+        scrollbarHideTimer = setTimeout(() => {
+            customScrollbar.classList.add('hidden');
+        }, 2000);
+    };
 
     // --- Date Formatting Helper ---
     const formatDateGroup = (dateString) => {
@@ -76,7 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentlyDisplayedMedia = [...allMedia];
             populateCollections(allMedia);
-            sortAndRenderMedia();
+            const filterRestored = restoreSelectedFilter();
+            if (!filterRestored) {
+                sortAndRenderMedia();
+            }
         } catch (error) {
             console.error("Failed to fetch media:", error);
             galleryContainer.innerHTML = `
@@ -141,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     header.className = 'date-header';
                     header.innerHTML = `
                         <span class="date-main">${groupName}</span>
-                        <span class="date-sub">${groupName === 'Today' || groupName === 'Yesterday' ? getDetailedDate(item.createdTime) : ''}</span>
+                        <span class="date-sub">${getDetailedDate(item.createdTime)}</span>
                     `;
 
                     currentGrid = document.createElement('div');
@@ -165,6 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             galleryContainer.appendChild(grid);
         }
+        
+        updateTimelineMarkers();
     };
 
     const createGridItem = (item, index) => {
@@ -277,6 +357,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', handleFilterClick));
     };
 
+    const filterCollections = (searchTerm) => {
+        const collectionItems = document.querySelectorAll('.dropdown-content .nav-item');
+        collectionItems.forEach(item => {
+            const collectionName = item.textContent.toLowerCase();
+            const searchLower = searchTerm.toLowerCase();
+            if (collectionName.includes(searchLower)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    };
+
     // --- Sorting and Filtering ---
     const sortAndRenderMedia = () => {
         const sortValue = sortSelect.value;
@@ -302,10 +395,46 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGallery(sorted);
     };
 
+    const saveSelectedFilter = (filter, collectionName = null) => {
+        localStorage.setItem('selectedFilter', filter);
+        if (collectionName) {
+            localStorage.setItem('selectedCollectionName', collectionName);
+        } else {
+            localStorage.removeItem('selectedCollectionName');
+        }
+    };
+
+    const restoreSelectedFilter = () => {
+        const savedFilter = localStorage.getItem('selectedFilter');
+        const savedCollectionName = localStorage.getItem('selectedCollectionName');
+
+        if (savedFilter) {
+            let navItem = null;
+
+            if (savedFilter === 'all') {
+                navItem = document.querySelector('[data-filter="all"]');
+            } else if (savedFilter === 'videos') {
+                navItem = document.querySelector('[data-filter="videos"]');
+            } else if (savedFilter === 'collection-image' || savedFilter === 'collection-video') {
+                navItem = document.querySelector(`[data-filter="${savedFilter}"][data-collection-name="${savedCollectionName}"]`);
+            }
+
+            if (navItem) {
+                navItem.click();
+                return true;
+            }
+        }
+        return false;
+    };
+
     const handleFilterClick = (e) => {
         e.preventDefault();
         const target = e.currentTarget;
         const filter = target.dataset.filter;
+        const collectionName = target.dataset.collectionName;
+
+        // Save the selected filter
+        saveSelectedFilter(filter, collectionName);
 
         // Update active class
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -387,6 +516,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     sortSelect.addEventListener('change', sortAndRenderMedia);
     navItems.forEach(item => item.addEventListener('click', handleFilterClick));
+    collectionSearchInput.addEventListener('input', (e) => filterCollections(e.target.value));
+
+    document.querySelector('.main-content').addEventListener('scroll', updateScrollbarPosition);
+
+    window.addEventListener('resize', () => {
+        updateTimelineMarkers();
+    });
 
     closeLightboxBtn.addEventListener('click', closeLightbox);
     nextLightboxBtn.addEventListener('click', showNextMedia);
@@ -447,7 +583,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Initial Load ---
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
+    
+    customScrollbar.classList.add('hidden');
+    
     fetchMedia();
 });
