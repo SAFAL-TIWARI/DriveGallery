@@ -8,7 +8,7 @@ const port = 3000;
 // --- Configuration ---
 // IMPORTANT: Replace with your actual credentials and folder IDs
 const CREDENTIALS_PATH = path.join(__dirname, 'gcsj-2025-73866c4d9bd1.json');
-const DRIVE_FOLDER_IDS = ['1sVtMywFKCzv7LwPLQrV3Q2lb7XH69KVt', '14bNr079rGkdUzpyXzDxK50K16qFypbLI', '1gIunPxW8QUAbiFYPeq0nUh5xhPr2LH4d', '13or1YN_aQlYZLmX8vwhvbLFdQf2mcKPY', '1YKUw48VvU6BwgOumbjxWIbN5xPoLbAvA'];
+const DRIVE_FOLDER_IDS = ['1sVtMywFKCzv7LwPLQrV3Q2lb7XH69KVt', '14bNr079rGkdUzpyXzDxK50K16qFypbLI', '1gIunPxW8QUAbiFYPeq0nUh5xhPr2LH4d', '13or1YN_aQlYZLmX8vwhvbLFdQf2mcKPY', '1YKUw48VvU6BwgOumbjxWIbN5xPoLbAvA', '17d8SnFnOPntKrPG2BTtlYe3LNBRmjX5D'];
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
 
 // --- Google Drive API Authentication ---
