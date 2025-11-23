@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,21 +8,54 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
 </head>
+
 <body>
     <div class="container">
         <aside class="sidebar">
-            <h1 class="logo">DriveGallery</h1>
-            <nav class="navigation">
-                <a href="#" class="nav-item active" data-filter="all">Everything</a>
-                <a href="#" class="nav-item" data-filter="videos">Videos Only</a>
-                <h2 class="collections-title">Collections</h2>
-                <div id="collections-nav" class="collections-nav">
-                    <!-- Collection links will be dynamically inserted here -->
+            <div class="sidebar-header">
+                <h1 class="logo">DriveGallery</h1>
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <span class="hamburger"></span>
+                </button>
+            </div>
+            <div class="nav-content">
+                <nav class="navigation">
+                    <a href="#" class="nav-item active" data-filter="all">Everything</a>
+                    <a href="#" class="nav-item" data-filter="videos">Videos Only</a>
+                    <h2 class="collections-title">Collections</h2>
+                    <div id="collections-nav" class="collections-nav">
+                        <div class="dropdown-section">
+                            <div class="dropdown-header" id="images-header">
+                                <span>Images</span>
+                                <span class="arrow">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="dropdown-content" id="images-dropdown">
+                                <!-- Image collections will be inserted here -->
+                            </div>
+                        </div>
+                        <div class="dropdown-section">
+                            <div class="dropdown-header" id="videos-header">
+                                <span>Videos</span>
+                                <span class="arrow">
+                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                        <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="dropdown-content" id="videos-dropdown">
+                                <!-- Video collections will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                <div class="theme-switcher">
+                    <label for="theme-toggle">Dark Mode</label>
+                    <input type="checkbox" id="theme-toggle">
                 </div>
-            </nav>
-            <div class="theme-switcher">
-                <label for="theme-toggle">Dark Mode</label>
-                <input type="checkbox" id="theme-toggle">
             </div>
         </aside>
 
@@ -57,4 +91,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>

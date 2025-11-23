@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevLightboxBtn = lightbox.querySelector('.lightbox-prev');
     const nextLightboxBtn = lightbox.querySelector('.lightbox-next');
 
+    // Mobile Nav Elements
+    const navToggle = document.querySelector('.nav-toggle');
+    const navContent = document.querySelector('.nav-content');
+
     let allMedia = [];
     let currentlyDisplayedMedia = [];
     let currentLightboxIndex = 0;
@@ -168,8 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
         gridItem.dataset.index = index; // Note: This index is relative to currentlyDisplayedMedia
 
         let mediaElement;
-        // Use thumbnailLink if available, otherwise use the full URL (for images)
-        let imageUrl = item.thumbnailLink ? item.thumbnailLink.replace('=s220', '=s600') : item.url;
+        // Use thumbnailLink if available. For images, we can use the full URL if thumbnail is missing.
+        // We avoid replacing =s220 with =s600 for now as it might be breaking some links.
+        let imageUrl = item.thumbnailLink || item.url;
 
         if (item.mimeType.startsWith('video/')) {
             if (!item.thumbnailLink) {
@@ -180,6 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaElement = document.createElement('img');
             mediaElement.src = imageUrl;
             mediaElement.alt = item.name;
+            mediaElement.referrerPolicy = "no-referrer"; // Important for Google Drive links
+
+            // Add error handler for broken video thumbnails
+            mediaElement.onerror = function () {
+                this.onerror = null; // Prevent infinite loop
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjUwIDE1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+VmlkZW88L3RleHQ+PC9zdmc+';
+            };
 
             const videoIcon = document.createElement('div');
             videoIcon.className = 'video-icon';
@@ -187,9 +199,16 @@ document.addEventListener('DOMContentLoaded', () => {
             gridItem.appendChild(videoIcon);
         } else {
             mediaElement = document.createElement('img');
-            mediaElement.src = item.url;
+            mediaElement.src = imageUrl; // Use thumbnailLink if available
             mediaElement.alt = item.name;
             mediaElement.loading = 'lazy';
+            mediaElement.referrerPolicy = "no-referrer"; // Important for Google Drive links
+
+            // Add error handler for broken image thumbnails
+            mediaElement.onerror = function () {
+                this.onerror = null; // Prevent infinite loop
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjUwIDE1MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+SW1hZ2U8L3RleHQ+PC9zdmc+';
+            };
         }
 
         gridItem.appendChild(mediaElement);
@@ -202,17 +221,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const populateCollections = (media) => {
-        const collections = [...new Set(media.map(item => item.collection))];
-        collectionsNav.innerHTML = '';
-        collections.forEach(collectionName => {
+        const imageCollections = new Set();
+        const videoCollections = new Set();
+
+        media.forEach(item => {
+            if (item.mimeType.startsWith('image/')) {
+                imageCollections.add(item.collection);
+            } else if (item.mimeType.startsWith('video/')) {
+                videoCollections.add(item.collection);
+            }
+        });
+
+        const imagesDropdown = document.getElementById('images-dropdown');
+        const videosDropdown = document.getElementById('videos-dropdown');
+
+        imagesDropdown.innerHTML = '';
+        videosDropdown.innerHTML = '';
+
+        imageCollections.forEach(collectionName => {
             const link = document.createElement('a');
             link.href = '#';
             link.className = 'nav-item';
             link.textContent = collectionName;
-            link.dataset.filter = 'collection';
+            link.dataset.filter = 'collection-image';
             link.dataset.collectionName = collectionName;
-            collectionsNav.appendChild(link);
+            imagesDropdown.appendChild(link);
         });
+
+        videoCollections.forEach(collectionName => {
+            const link = document.createElement('a');
+            link.href = '#';
+            link.className = 'nav-item';
+            link.textContent = collectionName;
+            link.dataset.filter = 'collection-video';
+            link.dataset.collectionName = collectionName;
+            videosDropdown.appendChild(link);
+        });
+
+        // Dropdown Toggle Logic
+        const dropdownHeaders = document.querySelectorAll('.dropdown-header');
+        dropdownHeaders.forEach(header => {
+            // Remove existing listeners to prevent duplicates if re-populated
+            const newHeader = header.cloneNode(true);
+            header.parentNode.replaceChild(newHeader, header);
+
+            newHeader.addEventListener('click', () => {
+                newHeader.classList.toggle('active');
+                const content = newHeader.nextElementSibling;
+                content.classList.toggle('active');
+            });
+        });
+
         // Re-attach event listeners for new collection items
         document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', handleFilterClick));
     };
@@ -258,12 +317,22 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'videos':
                 currentlyDisplayedMedia = allMedia.filter(item => item.mimeType.startsWith('video/'));
                 break;
-            case 'collection':
-                const collectionName = target.dataset.collectionName;
-                currentlyDisplayedMedia = allMedia.filter(item => item.collection === collectionName);
+            case 'collection-image':
+                const imgCollection = target.dataset.collectionName;
+                currentlyDisplayedMedia = allMedia.filter(item => item.collection === imgCollection && item.mimeType.startsWith('image/'));
+                break;
+            case 'collection-video':
+                const vidCollection = target.dataset.collectionName;
+                currentlyDisplayedMedia = allMedia.filter(item => item.collection === vidCollection && item.mimeType.startsWith('video/'));
                 break;
         }
         sortAndRenderMedia();
+
+        // Close mobile menu if open
+        if (navContent.classList.contains('active')) {
+            navToggle.classList.remove('active');
+            navContent.classList.remove('active');
+        }
     };
 
     // --- Lightbox Logic ---
@@ -329,6 +398,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'ArrowLeft') showPrevMedia();
         }
     });
+
+    // --- Mobile Navigation Logic ---
+    if (navToggle) {
+        navToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navToggle.classList.toggle('active');
+            navContent.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (navContent.classList.contains('active') && !navContent.contains(e.target) && e.target !== navToggle) {
+                navToggle.classList.remove('active');
+                navContent.classList.remove('active');
+            }
+        });
+    }
 
     // --- Initial Load ---
     const savedTheme = localStorage.getItem('theme') || 'light';
