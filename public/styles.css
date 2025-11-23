@@ -213,6 +213,42 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 10px;
+    gap: 10px;
+}
+
+#theme-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 40px;
+    height: 18px;
+    background-color: #ccc;
+    border-radius: 25px;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+#theme-toggle::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#theme-toggle:checked {
+    background-color: #0078d4;
+}
+
+#theme-toggle:checked::before {
+    left: 24px;
 }
 
 /* --- Main Content --- */
@@ -451,6 +487,28 @@ body {
 
 .lightbox-next {
     right: 20px;
+}
+
+.lightbox-download {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+    z-index: 1001;
+    text-decoration: none;
+}
+
+.lightbox-download:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* --- Responsive Design --- */

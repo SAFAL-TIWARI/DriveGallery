@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeLightboxBtn = lightbox.querySelector('.lightbox-close');
     const prevLightboxBtn = lightbox.querySelector('.lightbox-prev');
     const nextLightboxBtn = lightbox.querySelector('.lightbox-next');
+    const downloadLightboxBtn = document.getElementById('lightbox-download');
 
     // Mobile Nav Elements
     const navToggle = document.querySelector('.nav-toggle');
@@ -343,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lightboxMediaContainer.innerHTML = ''; // Clear previous media
         let mediaElement;
 
-        if (item.mimeType.startsWith('video/')) {
+        if (item.mimeType.startsWith('video/') || item.mimeType.startsWith('image/')) {
             mediaElement = document.createElement('iframe');
             mediaElement.src = `https://drive.google.com/file/d/${item.id}/preview`;
             mediaElement.width = "800"; // Set a base width, CSS will make it responsive
@@ -352,11 +353,17 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaElement.style.border = "none";
             mediaElement.className = "lightbox-iframe";
         } else {
+            // Fallback for other types if any
             mediaElement = document.createElement('img');
             mediaElement.src = item.url;
         }
 
         lightboxMediaContainer.appendChild(mediaElement);
+
+        // Update download link
+        // Use the standard Drive download URL format
+        downloadLightboxBtn.href = `https://drive.google.com/uc?export=download&id=${item.id}`;
+
         lightbox.classList.add('active');
     };
 
@@ -398,6 +405,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'ArrowLeft') showPrevMedia();
         }
     });
+
+    // --- Swipe Navigation ---
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const handleSwipe = () => {
+        const swipeThreshold = 50; // Minimum distance for a swipe
+        if (touchEndX < touchStartX - swipeThreshold) {
+            showNextMedia();
+        }
+        if (touchEndX > touchStartX + swipeThreshold) {
+            showPrevMedia();
+        }
+    };
+
+    lightbox.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
 
     // --- Mobile Navigation Logic ---
     if (navToggle) {
