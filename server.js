@@ -16,6 +16,18 @@ const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
 
 // --- Helper to get Folder IDs ---
 function getFolderIds() {
+    // Priority 1: Environment Variable (for Production/Vercel)
+    if (process.env.FOLDERS_DATA) {
+        try {
+            return JSON.parse(process.env.FOLDERS_DATA);
+        } catch (err) {
+            console.error("Error parsing FOLDERS_DATA environment variable:", err);
+            // Fallback to file if parsing fails, or return empty? 
+            // Let's continue to file check if env var is bad, or just log.
+        }
+    }
+
+    // Priority 2: Local File (for Development)
     try {
         if (fs.existsSync(FOLDERS_FILE_PATH)) {
             const data = fs.readFileSync(FOLDERS_FILE_PATH, 'utf8');
