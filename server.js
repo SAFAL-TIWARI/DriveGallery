@@ -34,23 +34,11 @@ async function getAuthenticatedClient() {
 }
 
 // --- API Endpoint to Fetch Media ---
-// --- Helper Function to Fetch Media ---
-// --- In-Memory Cache ---
-let mediaCache = null;
-let isFetching = false;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
-
-// --- Helper Function to Fetch Media ---
-async function fetchMediaFromDrive() {
-    if (isFetching) {
-        console.log('Already fetching media, skipping...');
-        return mediaCache || [];
-    }
-    isFetching = true;
-    console.log(`Fetching media for folders: ${DRIVE_FOLDER_IDS}`);
-
+app.get('/api/media', async (req, res) => {
     try {
+        console.log(`Fetching media for folders: ${DRIVE_FOLDER_IDS}`);
         const drive = await getAuthenticatedClient();
+        // Log the service account email (if possible to extract from auth client, otherwise just log that we are authenticated)
         console.log('Drive client authenticated.');
 
         let mediaFiles = [];
@@ -81,7 +69,7 @@ async function fetchMediaFromDrive() {
                         name: file.name,
                         createdTime: file.createdTime,
                         url: `/api/file/${file.id}`,
-                        thumbnailLink: file.thumbnailLink,
+                        thumbnailLink: file.thumbnailLink, // Add thumbnail link
                         mimeType: file.mimeType,
                         collection: collectionName,
                         width: file.imageMediaMetadata ? file.imageMediaMetadata.width : null,
@@ -96,68 +84,8 @@ async function fetchMediaFromDrive() {
                 console.error(`Error accessing folder ${folderId}:`, folderError.message);
             }
         }
+
         console.log(`Total media files found: ${mediaFiles.length}`);
-        mediaCache = mediaFiles; // Update cache
-        return mediaFiles;
-    } catch (error) {
-        console.error('Error fetching media from Drive:', error);
-        return mediaCache || []; // Return existing cache on error if available
-    } finally {
-        isFetching = false;
-    }
-}
-
-// --- Initial Fetch and Background Refresh ---
-if (require.main === module) {
-    // Initial fetch on startup
-    fetchMediaFromDrive();
-
-    // Refresh cache periodically
-    setInterval(() => {
-        console.log('Refreshing media cache...');
-        fetchMediaFromDrive();
-    }, CACHE_DURATION);
-}
-
-// --- Root Route with Data Injection ---
-const fs = require('fs');
-app.get('/', async (req, res) => {
-    try {
-        // Use cached data if available, otherwise fetch
-        let mediaFiles = mediaCache;
-        if (!mediaFiles) {
-            console.log('Cache miss, fetching media synchronously for request...');
-            mediaFiles = await fetchMediaFromDrive();
-        }
-
-        const indexPath = path.join(__dirname, 'public', 'index.html');
-
-        fs.readFile(indexPath, 'utf8', (err, htmlData) => {
-            if (err) {
-                console.error('Error reading index.html:', err);
-                return res.status(500).send('Error loading page');
-            }
-
-            // Inject the data as a global variable
-            const injectedScript = `<script>window.INITIAL_MEDIA = ${JSON.stringify(mediaFiles)};</script>`;
-            const modifiedHtml = htmlData.replace('</head>', `${injectedScript}</head>`);
-
-            res.send(modifiedHtml);
-        });
-    } catch (error) {
-        console.error('Error in root route:', error);
-        // Fallback to static file if fetch fails, or show error
-        res.status(500).send('Error loading gallery data');
-    }
-});
-
-// --- API Endpoint to Fetch Media ---
-app.get('/api/media', async (req, res) => {
-    try {
-        let mediaFiles = mediaCache;
-        if (!mediaFiles) {
-            mediaFiles = await fetchMediaFromDrive();
-        }
         res.json(mediaFiles);
     } catch (error) {
         console.error('Fatal error in /api/media:', error);

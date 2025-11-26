@@ -133,18 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data Fetching ---
     const fetchMedia = async () => {
         try {
-            if (window.INITIAL_MEDIA) {
-                allMedia = window.INITIAL_MEDIA;
-                // Clear it so subsequent calls (if any) might re-fetch if needed, or keep it?
-                // Better to keep it or just use it.
-                // Let's just use it.
-            } else {
-                const response = await fetch('/api/media');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                allMedia = await response.json();
+            galleryContainer.innerHTML = '<div class="loader"></div>';
+            const response = await fetch('/api/media');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            allMedia = await response.json();
 
             if (allMedia.length === 0) {
                 galleryContainer.innerHTML = `
@@ -249,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             galleryContainer.appendChild(grid);
         }
-
+        
         updateTimelineMarkers();
     };
 
@@ -591,8 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
-
+    
     customScrollbar.classList.add('hidden');
-
+    
     fetchMedia();
 });
