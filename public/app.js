@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             galleryContainer.appendChild(grid);
         }
-
+        
         updateTimelineMarkers();
     };
 
@@ -582,76 +582,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Add Folder Logic ---
-    const addFolderBtn = document.getElementById('add-folder-btn');
-    const addFolderModal = document.getElementById('add-folder-modal');
-    const cancelFolderBtn = document.getElementById('cancel-folder-btn');
-    const confirmFolderBtn = document.getElementById('confirm-folder-btn');
-    const folderUrlInput = document.getElementById('folder-url-input');
-    const modalError = document.getElementById('modal-error');
-
-    if (addFolderBtn) {
-        addFolderBtn.addEventListener('click', () => {
-            addFolderModal.classList.add('active');
-            folderUrlInput.value = '';
-            modalError.textContent = '';
-            folderUrlInput.focus();
-        });
-
-        const closeModal = () => {
-            addFolderModal.classList.remove('active');
-        };
-
-        cancelFolderBtn.addEventListener('click', closeModal);
-
-        addFolderModal.addEventListener('click', (e) => {
-            if (e.target === addFolderModal) closeModal();
-        });
-
-        confirmFolderBtn.addEventListener('click', async () => {
-            const url = folderUrlInput.value.trim();
-            if (!url) {
-                modalError.textContent = 'Please enter a URL.';
-                return;
-            }
-
-            confirmFolderBtn.disabled = true;
-            confirmFolderBtn.textContent = 'Indexing...';
-            modalError.textContent = '';
-
-            try {
-                const response = await fetch('/api/add-folder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    closeModal();
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    modalError.textContent = data.error || 'Failed to add folder.';
-                }
-            } catch (error) {
-                console.error('Error adding folder:', error);
-                modalError.textContent = 'An error occurred. Please try again.';
-            } finally {
-                confirmFolderBtn.disabled = false;
-                confirmFolderBtn.textContent = 'Index Folder';
-            }
-        });
-    }
-
     // --- Initial Load ---
     const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
-
+    
     customScrollbar.classList.add('hidden');
-
+    
     fetchMedia();
 });

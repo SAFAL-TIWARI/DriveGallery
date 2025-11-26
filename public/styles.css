@@ -4,7 +4,6 @@
     --bg-color: #121212;
     --text-color: #e0e0e0;
     --sidebar-bg: #1e1e1e;
-    /* --accent-color: #57caff; */
     --accent-color: #4285f4;
     --border-color: #3c4043;
     --loader-color: #ff7daf;
@@ -378,7 +377,7 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    background-image:
+    background-image: 
         linear-gradient(0deg, var(--grid-line-color-light) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line-color-light) 1px, transparent 1px);
     background-size: 30px 30px;
@@ -394,7 +393,7 @@ body {
 }
 
 [data-theme="dark"] .main-content {
-    background-image:
+    background-image: 
         linear-gradient(0deg, var(--grid-line-color-dark) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line-color-dark) 1px, transparent 1px);
 }
@@ -475,7 +474,7 @@ body {
     padding: 6px 12px;
     border-radius: 20px;
     backdrop-filter: blur(4px);
-
+   
 }
 
 .timeline-label:hover {
@@ -746,8 +745,7 @@ body {
 
 /* --- Responsive Design --- */
 @media (max-width: 768px) {
-    
-     .container {
+    .container {
         flex-direction: column;
     }
 
@@ -820,273 +818,4 @@ body {
         padding: 10px;
         font-size: 24px;
     }
-}
-
-/* --- Lightbox --- */
-.lightbox {
-    display: none;
-    position: fixed;
-    z-index: 2000;
-    /* Higher than headers */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.95);
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.lightbox.active {
-    display: flex;
-}
-
-.lightbox-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.media-container {
-    width: 80%;
-    height: 80%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.media-container img,
-.media-container video,
-.media-container iframe {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-.lightbox-iframe {
-    width: 80vw;
-    height: 45vw;
-    /* 16:9 */
-    border: none;
-}
-
-.lightbox-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    color: white;
-    font-size: 40px;
-    cursor: pointer;
-    z-index: 2001;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.lightbox-close:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.lightbox-prev,
-.lightbox-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: white;
-    font-size: 30px;
-    cursor: pointer;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
-    transition: background 0.2s;
-    user-select: none;
-    z-index: 2001;
-}
-
-.lightbox-prev:hover,
-.lightbox-next:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.lightbox-prev {
-    left: 20px;
-}
-
-.lightbox-next {
-    right: 20px;
-}
-
-.lightbox-download {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    cursor: pointer;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease;
-    z-index: 1001;
-    text-decoration: none;
-}
-
-.lightbox-download:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-
-/* --- Add Folder Button --- */
-.add-folder-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 10px;
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-bottom: 15px;
-    transition: background-color 0.2s;
-}
-
-.add-folder-btn:hover {
-    background-color: var(--accent-color);
-}
-
-.add-folder-btn svg {
-    fill: currentColor;
-}
-
-/* --- Modal --- */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 3000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    /* Darker backdrop */
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background-color: var(--sidebar-bg);
-    /* Force white background */
-    color: var(--text-color);
-    /* Force dark text */
-    padding: 30px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    border: none;
-    font-family: 'Roboto', sans-serif;
-}
-
-.modal-header h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.3em;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-.modal-body p {
-    margin-bottom: 20px;
-    line-height: 1.5;
-    color: var(--text-color);
-    font-size: 0.9em;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--accent-color);
-    /* Purple border */
-    border-radius: 20px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-size: 1em;
-    margin-bottom: 5px;
-    outline: none;
-    transition: box-shadow 0.2s;
-}
-
-.modal-input:focus {
-    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2);
-}
-
-.error-message {
-    color: #ef4444;
-    font-size: 0.85em;
-    min-height: 1.2em;
-    margin-top: 5px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 25px;
-}
-
-.btn-cancel,
-.btn-confirm {
-    padding: 10px 20px;
-    border-radius: 20px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95em;
-    transition: all 0.2s;
-}
-
-.btn-cancel {
-    background-color: transparent;
-    color: var(--text-color);
-}
-
-.btn-cancel:hover {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
-
-.btn-confirm {
-    background-color: var(--accent-color);
-    color: var(--text-color);
-}
-
-.btn-confirm:hover {
-    background-color: var(--accent-color);
-}
-
-.btn-confirm:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
 }

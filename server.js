@@ -1,62 +1,15 @@
 const express = require('express');
 const { google } = require('googleapis');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const port = 3000;
 
-app.use(express.json()); // Enable JSON body parsing
-
 // --- Configuration ---
 // IMPORTANT: Replace with your actual credentials and folder IDs
 const CREDENTIALS_PATH = path.join(__dirname, 'gcsj-2025-73866c4d9bd1.json');
-const FOLDERS_FILE_PATH = path.join(__dirname, 'folders.json');
+const DRIVE_FOLDER_IDS = ['1sVtMywFKCzv7LwPLQrV3Q2lb7XH69KVt', '14bNr079rGkdUzpyXzDxK50K16qFypbLI', '1gIunPxW8QUAbiFYPeq0nUh5xhPr2LH4d', '13or1YN_aQlYZLmX8vwhvbLFdQf2mcKPY', '1YKUw48VvU6BwgOumbjxWIbN5xPoLbAvA', '17d8SnFnOPntKrPG2BTtlYe3LNBRmjX5D'];
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
-
-// --- Helper to get Folder IDs ---
-function getFolderIds() {
-    // Priority 1: Environment Variable (for Production/Vercel)
-    if (process.env.FOLDERS_DATA) {
-        try {
-            console.log("Attempting to read FOLDERS_DATA from environment...");
-            const rawData = process.env.FOLDERS_DATA.trim();
-            const folders = JSON.parse(rawData);
-            console.log(`Successfully loaded ${folders.length} folders from environment.`);
-            return folders;
-        } catch (err) {
-            console.error("Error parsing FOLDERS_DATA environment variable:", err);
-            console.error("Raw content (first 50 chars):", process.env.FOLDERS_DATA.substring(0, 50));
-        }
-    } else {
-        console.log("FOLDERS_DATA environment variable is not set.");
-    }
-
-    // Priority 2: Local File (for Development)
-    try {
-        if (fs.existsSync(FOLDERS_FILE_PATH)) {
-            console.log("Reading folders from local file:", FOLDERS_FILE_PATH);
-            const data = fs.readFileSync(FOLDERS_FILE_PATH, 'utf8');
-            return JSON.parse(data);
-        } else {
-            console.log("Local folders.json file not found.");
-        }
-    } catch (err) {
-        console.error("Error reading folders.json:", err);
-    }
-    return []; // Return empty if file missing or error
-}
-
-// --- Helper to save Folder IDs ---
-function saveFolderId(folderId) {
-    const currentIds = getFolderIds();
-    if (!currentIds.includes(folderId)) {
-        currentIds.push(folderId);
-        fs.writeFileSync(FOLDERS_FILE_PATH, JSON.stringify(currentIds, null, 2));
-        return true;
-    }
-    return false; // Already exists
-}
 
 // --- Google Drive API Authentication ---
 async function getAuthenticatedClient() {
@@ -80,65 +33,17 @@ async function getAuthenticatedClient() {
     return google.drive({ version: 'v3', auth: authClient });
 }
 
-// --- API Endpoint to Add New Folder ---
-app.post('/api/add-folder', async (req, res) => {
-    try {
-        const { url } = req.body;
-        if (!url) {
-            return res.status(400).json({ error: 'URL is required' });
-        }
-
-        // Extract ID from URL
-        // Supports: https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing
-        // or just FOLDER_ID
-        let folderId = url;
-        const match = url.match(/folders\/([a-zA-Z0-9-_]+)/);
-        if (match && match[1]) {
-            folderId = match[1];
-        }
-
-        // Basic validation
-        if (!folderId || folderId.length < 10) {
-            return res.status(400).json({ error: 'Invalid Folder ID or URL' });
-        }
-
-        // Verify folder exists and is accessible
-        const drive = await getAuthenticatedClient();
-        try {
-            await drive.files.get({
-                fileId: folderId,
-                fields: 'name',
-            });
-        } catch (err) {
-            console.error("Error verifying folder:", err.message);
-            return res.status(404).json({ error: 'Folder not found or not accessible. Make sure it is public or shared with the service account.' });
-        }
-
-        const added = saveFolderId(folderId);
-        if (added) {
-            res.json({ success: true, message: 'Folder added successfully', folderId });
-        } else {
-            res.json({ success: true, message: 'Folder already exists', folderId });
-        }
-
-    } catch (error) {
-        console.error('Error adding folder:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 // --- API Endpoint to Fetch Media ---
 app.get('/api/media', async (req, res) => {
     try {
-        const driveFolderIds = getFolderIds();
-        console.log(`Fetching media for folders: ${driveFolderIds}`);
+        console.log(`Fetching media for folders: ${DRIVE_FOLDER_IDS}`);
         const drive = await getAuthenticatedClient();
         // Log the service account email (if possible to extract from auth client, otherwise just log that we are authenticated)
         console.log('Drive client authenticated.');
 
         let mediaFiles = [];
 
-        for (const folderId of driveFolderIds) {
+        for (const folderId of DRIVE_FOLDER_IDS) {
             console.log(`Querying folder: ${folderId}`);
             try {
                 const folderResponse = await drive.files.get({
