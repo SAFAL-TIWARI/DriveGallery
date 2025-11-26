@@ -19,19 +19,27 @@ function getFolderIds() {
     // Priority 1: Environment Variable (for Production/Vercel)
     if (process.env.FOLDERS_DATA) {
         try {
-            return JSON.parse(process.env.FOLDERS_DATA);
+            console.log("Attempting to read FOLDERS_DATA from environment...");
+            const rawData = process.env.FOLDERS_DATA.trim();
+            const folders = JSON.parse(rawData);
+            console.log(`Successfully loaded ${folders.length} folders from environment.`);
+            return folders;
         } catch (err) {
             console.error("Error parsing FOLDERS_DATA environment variable:", err);
-            // Fallback to file if parsing fails, or return empty? 
-            // Let's continue to file check if env var is bad, or just log.
+            console.error("Raw content (first 50 chars):", process.env.FOLDERS_DATA.substring(0, 50));
         }
+    } else {
+        console.log("FOLDERS_DATA environment variable is not set.");
     }
 
     // Priority 2: Local File (for Development)
     try {
         if (fs.existsSync(FOLDERS_FILE_PATH)) {
+            console.log("Reading folders from local file:", FOLDERS_FILE_PATH);
             const data = fs.readFileSync(FOLDERS_FILE_PATH, 'utf8');
             return JSON.parse(data);
+        } else {
+            console.log("Local folders.json file not found.");
         }
     } catch (err) {
         console.error("Error reading folders.json:", err);
