@@ -470,11 +470,10 @@ body {
     pointer-events: auto;
     cursor: pointer;
     transition: opacity 0.2s ease;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--bg-color);
     padding: 6px 12px;
     border-radius: 20px;
     backdrop-filter: blur(4px);
-   
 }
 
 .timeline-label:hover {
@@ -494,6 +493,11 @@ body {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
+    position: sticky;
+    top: -5px;
+    /* background-color: var(--bg-color); */
+    padding: 10px 0;
+    z-index: 1000;
 }
 
 #sort-by {
@@ -540,11 +544,10 @@ body {
     color: #888;
 }
 
-/* --- Gallery Grid (Flex/Grid Hybrid) --- */
+/* --- Gallery Grid (Masonry Layout) --- */
 .section-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--grid-gap);
+    column-count: 4;
+    column-gap: var(--grid-gap);
 }
 
 .grid-item {
@@ -552,10 +555,11 @@ body {
     border-radius: 8px;
     overflow: hidden;
     background-color: var(--sidebar-bg);
-    aspect-ratio: 1 / 1;
-    /* Square tiles for a cleaner look, or remove for masonry */
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: var(--grid-gap);
+    break-inside: avoid;
+    display: block;
 }
 
 .grid-item:hover {
@@ -566,9 +570,8 @@ body {
 .grid-item img,
 .grid-item video {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
-    /* Ensures square tiles look good */
     display: block;
     transition: opacity 0.3s;
 }
@@ -802,9 +805,12 @@ body {
     }
 
     .section-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        /* Smaller tiles on mobile */
-        gap: 5px;
+        column-count: 2;
+        column-gap: 5px;
+    }
+
+    .grid-item {
+        margin-bottom: 5px;
     }
 
     .date-header {
